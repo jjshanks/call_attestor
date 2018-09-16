@@ -11,15 +11,15 @@ import (
     "github.com/shirou/gopsutil/process"
 )
 
-type MyHandler struct{}
+type AttestorSocketHandler struct{}
 
-func (h *MyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	hj, ok := w.(http.Hijacker)
+func (h *AttestorSocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	highjacker, ok := w.(http.Hijacker)
 	if !ok {
 		http.Error(w, "webserver doesn't support hijacking", http.StatusInternalServerError)
 		return
 	}
-	conn, bufrw, err := hj.Hijack()
+	conn, bufrw, err := highjacker.Hijack()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -28,7 +28,7 @@ func (h *MyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer conn.Close()
 	uconn, ok := conn.(*net.UnixConn)
 	if !ok {
-		http.Error(w, "boom", http.StatusInternalServerError)
+		http.Error(w, "connection from webserver isn't a UnixConn", http.StatusInternalServerError)
 		return
 	}
 
@@ -60,7 +60,7 @@ func (h *MyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	server := http.Server {
-		Handler: &MyHandler{},
+		Handler: &AttestorSocketHandler{},
 	}
 	socketPath := flag.String("socket_path", "/tmp/foo/bar", "path for socket")
 	flag.Parse()
