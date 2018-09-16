@@ -62,7 +62,7 @@ func main() {
 	server := http.Server {
 		Handler: &AttestorSocketHandler{},
 	}
-	socketPath := flag.String("socket_path", "/tmp/foo/bar", "path for socket")
+	socketPath := flag.String("socket_path", "/tmp/attestor/socket", "path for socket")
 	flag.Parse()
 	os.Remove(*socketPath)
         unixListener, err := net.Listen("unix", *socketPath)
