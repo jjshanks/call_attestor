@@ -1,14 +1,14 @@
 package main
 
 import (
-    "fmt"
-    "flag"
-    "net"
-    "net/http"
-    "syscall"
-    "os"
-    "os/user"
-    "github.com/shirou/gopsutil/process"
+	"flag"
+	"fmt"
+	"github.com/shirou/gopsutil/process"
+	"net"
+	"net/http"
+	"os"
+	"os/user"
+	"syscall"
 )
 
 type AttestorSocketHandler struct{}
@@ -34,15 +34,15 @@ func (h *AttestorSocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 	file, err := uconn.File()
 	if err != nil {
-                http.Error(w, err.Error(), http.StatusInternalServerError)
-                return
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	defer file.Close()
 
 	ucred, err := syscall.GetsockoptUcred(int(file.Fd()), syscall.SOL_SOCKET, syscall.SO_PEERCRED)
 	if err != nil {
-                http.Error(w, err.Error(), http.StatusInternalServerError)
-                return
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	pid := int32(ucred.Pid)
@@ -59,17 +59,17 @@ func (h *AttestorSocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 }
 
 func main() {
-	server := http.Server {
+	server := http.Server{
 		Handler: &AttestorSocketHandler{},
 	}
 	socketPath := flag.String("socket_path", "/tmp/attestor/socket", "path for socket")
 	flag.Parse()
 	os.Remove(*socketPath)
-        unixListener, err := net.Listen("unix", *socketPath)
+	unixListener, err := net.Listen("unix", *socketPath)
 	defer unixListener.Close()
 	os.Chmod(*socketPath, 0777)
-        if err != nil {
-                panic(err)
-        }
-        server.Serve(unixListener)
+	if err != nil {
+		panic(err)
+	}
+	server.Serve(unixListener)
 }
